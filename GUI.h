@@ -23,10 +23,11 @@ private:
 	QPushButton* filter2_btn = new QPushButton{"filter2"};
 	QPushButton* filter3_btn = new QPushButton{"filter3"};
 
-	QLabel* label_name = new QLabel("name test ");
-	QLabel* label_hours = new QLabel("269 ");
-	QLabel* label_type = new QLabel("cacamaca ");
-	QLabel* label_teacher = new QLabel("ceva baiat ");
+
+	QLabel* label_name = new QLabel("");
+	QLabel* label_hours = new QLabel("");
+	QLabel* label_type = new QLabel("");
+	QLabel* label_teacher = new QLabel("");
 
 	QPushButton* edit_btn = new QPushButton{"Edit"};
 	QPushButton* remove_btn = new QPushButton{"Remove"};
@@ -34,7 +35,8 @@ private:
 public:
 	GUI(Service& s): serv{s} {
 		initGUI();
-		refreshList(this->serv.getAll());
+		updateList(this->serv.getAll());
+		connectSignalsSlots();
 	}
 
 	void initGUI() {
@@ -75,11 +77,43 @@ public:
 		actions_layout->addWidget(this->undo_btn);
 	}
 
-	void refreshList(const vector<Subject>& subjects) {
+	void updateList(const vector<Subject>& subjects) {
+		this->main_list->clear();
 		for (const auto& s : subjects) {
 			main_list->addItem(QString::fromStdString(s.getName()));
 			//layout_main->addWidget(label);
 			// list->addItem(label) cred sau cv de genu
 		}
+	}
+
+	void connectSignalsSlots() {
+		connect(this->main_list, &QListWidget::itemClicked, this, &GUI::showSubjectStats);
+		connect(this->remove_btn, &QPushButton::clicked, this, &GUI::removeSubject);
+	}
+
+	void showSubjectStats(const QListWidgetItem *item) {
+		if (item) {
+			const auto name = item->text().toStdString();
+			const auto index = this->serv.findSubjectByName(name);
+			if (index == -1) {
+				throw std::exception("subject not found");
+			}
+			const auto subject = this->serv.getAll()[index];
+			label_name->setText(QString::fromStdString(subject.getName()));
+			label_hours->setText(QString::fromStdString(std::to_string(subject.getHours())));
+			label_type->setText(QString::fromStdString(subject.getType()));
+			label_teacher->setText(QString::fromStdString(subject.getTeacher()));
+		}
+	}
+
+	void removeSubject() {
+		const auto name = this->main_list->currentItem()->text().toStdString();
+		const auto index = this->serv.findSubjectByName(name);
+		this->serv.removeSubject(index);
+		updateList(this->serv.getAll());
+		label_name->setText("");
+		label_type->setText("");
+		label_hours->setText("");
+		label_teacher->setText("");
 	}
 };

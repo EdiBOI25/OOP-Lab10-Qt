@@ -62,6 +62,18 @@ public:
 	 */
 	int findSubject(const string& name, const int& hours, const string& type, const string& teacher) const;
 
+	// finds subject by given name
+	// returns -1 if not found
+	int findSubjectByName(const string& name) const{
+		const auto subjects = this->getAll();
+		for(int i = 0; i < subjects.size(); ++i) {
+			if (subjects[i].getName() == name) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * \brief Removes the subject at a given index
 	 * \param index index of subject to remove
