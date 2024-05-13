@@ -10,6 +10,7 @@
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QComboBox>
 
+#include "CustomQWidgets.h"
 #include "service.h"
 #include "CustomQWidgets.h"
 
@@ -25,6 +26,7 @@ private:
 	QPushButton* sort3_btn = new QPushButton{"Sort by teacher/type"};
 	QPushButton* filter1_btn = new QPushButton{"Filter by hours less than"};
 	QPushButton* filter2_btn = new QPushButton{"Filter by teacher"};
+	QPushButton* filter3_btn = new QPushButton{"Show all subjects"};
 
 	QLabel* label_status = new QLabel{ "Status messages will be displayed here" };
 
@@ -63,6 +65,7 @@ public:
 		col1->addLayout(filter_layout);
 		filter_layout->addWidget(this->filter1_btn);
 		filter_layout->addWidget(this->filter2_btn);
+		filter_layout->addWidget(this->filter3_btn);
 		col1->addWidget(label_status);
 
 		// column 2
@@ -86,8 +89,6 @@ public:
 		this->main_list->clear();
 		for (const auto& s : subjects) {
 			main_list->addItem(QString::fromStdString(s.getName()));
-			//layout_main->addWidget(label);
-			// list->addItem(label) cred sau cv de genu
 		}
 	}
 
@@ -102,6 +103,13 @@ public:
 		connect(this->sort1_btn, &QPushButton::clicked, this, &GUI::sortByName);
 		connect(this->sort2_btn, &QPushButton::clicked, this, &GUI::sortByHours);
 		connect(this->sort3_btn, &QPushButton::clicked, this, &GUI::sortByTeacher);
+
+		connect(this->filter1_btn, &QPushButton::clicked, this, &GUI::filterByHour);
+		connect(this->filter2_btn, &QPushButton::clicked, this, &GUI::filterByTeacher);
+		connect(this->filter3_btn, &QPushButton::clicked, [&] {
+			this->updateList(this->serv.getAll());
+			updateStatus("All subjects shown");
+		});
 	}
 
 	void showSubjectStats(const QListWidgetItem *item) {
@@ -194,6 +202,52 @@ public:
 				});
 			updateList(result);
 			updateStatus("List sorted");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}
+	}
+
+	void filterByHour() {
+		// TODO
+		try {
+			int hours = -1;
+			FilterDialogWindow dialog{ "Enter number of hours per week", true };
+			if (dialog.exec() == QDialog::Accepted) {
+				hours = dialog.getValue().toInt();
+			}
+			else return;
+
+			auto all = this->serv.getAll();
+			vector<Subject> result{};
+			std::copy_if(all.begin(), all.end(),std::back_inserter(result) , [&](const Subject& s) {
+				return s.getHours() <= hours;
+			});
+			updateList(result);
+			updateStatus("List filtered");
+		}
+		catch(const std::exception & e) {
+			updateStatus(e.what());
+		}
+	}
+
+	void filterByTeacher() {
+		// TODO
+		try {
+			string teacher = "dude";
+			FilterDialogWindow dialog{ "Enter teacher", false };
+			if (dialog.exec() == QDialog::Accepted) {
+				teacher = dialog.getValue().toStdString();
+			}
+			else return;
+
+			auto all = this->serv.getAll();
+			vector<Subject> result{};
+			std::copy_if(all.begin(), all.end(), std::back_inserter(result), [&](const Subject& s) {
+				return s.getTeacher().find(teacher) != string::npos;
+				});
+			updateList(result);
+			updateStatus("List filtered");
 		}
 		catch (const std::exception& e) {
 			updateStatus(e.what());
