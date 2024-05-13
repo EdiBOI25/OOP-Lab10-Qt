@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <algorithm>
+
 #include <QMainWindow>
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QLayout>
@@ -6,8 +8,10 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QFormLayout>
+#include <QtWidgets/QComboBox>
 
 #include "service.h"
+#include "CustomQWidgets.h"
 
 class GUI: public QWidget {
 private:
@@ -16,12 +20,13 @@ private:
 	QListWidget* main_list = new QListWidget{};
 
 	QPushButton* add_btn = new QPushButton{"Add new subject"};
-	QPushButton* sort1_btn = new QPushButton{"Sort1"};
-	QPushButton* sort2_btn = new QPushButton{"Sort2"};
-	QPushButton* sort3_btn = new QPushButton{"Sort3"};
-	QPushButton* filter1_btn = new QPushButton{"filter1"};
-	QPushButton* filter2_btn = new QPushButton{"filter2"};
-	QPushButton* filter3_btn = new QPushButton{"filter3"};
+	QPushButton* sort1_btn = new QPushButton{"Sort by name"};
+	QPushButton* sort2_btn = new QPushButton{"Sort by hours"};
+	QPushButton* sort3_btn = new QPushButton{"Sort by teacher/type"};
+	QPushButton* filter1_btn = new QPushButton{"Filter by hours less than"};
+	QPushButton* filter2_btn = new QPushButton{"Filter by teacher"};
+
+	QLabel* label_status = new QLabel{ "Status messages will be displayed here" };
 
 
 	QLabel* label_name = new QLabel("");
@@ -58,7 +63,7 @@ public:
 		col1->addLayout(filter_layout);
 		filter_layout->addWidget(this->filter1_btn);
 		filter_layout->addWidget(this->filter2_btn);
-		filter_layout->addWidget(this->filter3_btn);
+		col1->addWidget(label_status);
 
 		// column 2
 		auto col2 = new QFormLayout{};
@@ -88,7 +93,15 @@ public:
 
 	void connectSignalsSlots() {
 		connect(this->main_list, &QListWidget::itemClicked, this, &GUI::showSubjectStats);
+
 		connect(this->remove_btn, &QPushButton::clicked, this, &GUI::removeSubject);
+		connect(this->undo_btn, &QPushButton::clicked, this, &GUI::undo);
+		connect(this->add_btn, &QPushButton::clicked, this, &GUI::addSubject);
+		connect(this->edit_btn, &QPushButton::clicked, this, &GUI::updateSubject);
+
+		connect(this->sort1_btn, &QPushButton::clicked, this, &GUI::sortByName);
+		connect(this->sort2_btn, &QPushButton::clicked, this, &GUI::sortByHours);
+		connect(this->sort3_btn, &QPushButton::clicked, this, &GUI::sortByTeacher);
 	}
 
 	void showSubjectStats(const QListWidgetItem *item) {
@@ -106,14 +119,86 @@ public:
 		}
 	}
 
+	void updateStatus(const string& message) {
+		label_status->setText(QString::fromStdString(message));
+	}
+
 	void removeSubject() {
-		const auto name = this->main_list->currentItem()->text().toStdString();
-		const auto index = this->serv.findSubjectByName(name);
-		this->serv.removeSubject(index);
-		updateList(this->serv.getAll());
-		label_name->setText("");
-		label_type->setText("");
-		label_hours->setText("");
-		label_teacher->setText("");
+		try {
+			const auto name = this->main_list->currentItem()->text().toStdString();
+			const auto index = this->serv.findSubjectByName(name);
+			this->serv.removeSubject(index);
+			updateList(this->serv.getAll());
+			label_name->setText("");
+			label_type->setText("");
+			label_hours->setText("");
+			label_teacher->setText("");
+			updateStatus("Subject removed");
+		} catch (const std::exception& e) {
+			this->updateStatus(e.what()); 
+		}
+		
+	}
+
+	void undo() {
+		try {
+			this->serv.undo();
+			updateList(this->serv.getAll());
+			this->updateStatus("Undo successful");
+		} catch (const std::exception& e) {
+			this->updateStatus(e.what());
+		}
+	}
+
+	void addSubject() {
+		// TODO
+	}
+
+	void updateSubject() {
+		// TODO
+	}
+
+	void sortByName() {
+		try {
+			auto result = this->serv.getAll();
+			std::sort(result.begin(), result.end(), [&](const Subject& s1, const Subject& s2) {
+				return s1.getName() < s2.getName();
+				});
+			updateList(result);
+			updateStatus("List sorted");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}		
+	}
+
+	void sortByHours() {
+		try {
+			auto result = this->serv.getAll();
+			std::sort(result.begin(), result.end(), [&](const Subject& s1, const Subject& s2) {
+				return s1.getHours() < s2.getHours();
+				});
+			updateList(result);
+			updateStatus("List sorted");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}
+	}
+
+	void sortByTeacher() {
+		try {
+			auto result = this->serv.getAll();
+			std::sort(result.begin(), result.end(), [&](const Subject& s1, const Subject& s2) {
+				return (s1.getTeacher() < s2.getTeacher()) || (s1.getTeacher() == s2.getTeacher() && s1.getType() < s2.getType());
+				});
+			updateList(result);
+			updateStatus("List sorted");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}
 	}
 };
+
+
