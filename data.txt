@@ -1,0 +1,6 @@
+default1;10;compulsory;some dude
+default2;20;compulsory;other dude
+default4;40;other;not a dude this time
+default5;50;optional;not a dude again
+default3;30;optional;another dude
+aaaa;10;aaa;aa
