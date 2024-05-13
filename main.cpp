@@ -1,5 +1,7 @@
 #include "Lab10Qt.h"
 #include <QtWidgets/QApplication>
+
+#include "GUI.h"
 #include "service.h"
 
 int main(int argc, char *argv[])
@@ -9,7 +11,9 @@ int main(int argc, char *argv[])
     RepoWithFile repo{ "data.txt" };
     Service serv{ repo };
 
-    Lab10Qt w;
+    GUI w{ serv };
     w.show();
+
+
     return a.exec();
 }
