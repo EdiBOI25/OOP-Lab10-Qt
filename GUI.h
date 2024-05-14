@@ -39,12 +39,6 @@ private:
 	QPushButton* edit_btn = new QPushButton{"Edit"};
 	QPushButton* remove_btn = new QPushButton{"Remove"};
 	QPushButton* undo_btn = new QPushButton{"Undo"};
-public:
-	GUI(Service& s): serv{s} {
-		initGUI();
-		updateList(this->serv.getAll());
-		connectSignalsSlots();
-	}
 
 	void initGUI() {
 		auto layout_main = new QHBoxLayout{};
@@ -108,11 +102,11 @@ public:
 		connect(this->filter2_btn, &QPushButton::clicked, this, &GUI::filterByTeacher);
 		connect(this->filter3_btn, &QPushButton::clicked, [&] {
 			this->updateList(this->serv.getAll());
-			updateStatus("All subjects shown");
-		});
+			updateStatus("Showing all subjects");
+			});
 	}
 
-	void showSubjectStats(const QListWidgetItem *item) {
+	void showSubjectStats(const QListWidgetItem* item) {
 		if (item) {
 			const auto name = item->text().toStdString();
 			const auto index = this->serv.findSubjectByName(name);
@@ -142,10 +136,11 @@ public:
 			label_hours->setText("");
 			label_teacher->setText("");
 			updateStatus("Subject removed");
-		} catch (const std::exception& e) {
-			this->updateStatus(e.what()); 
 		}
-		
+		catch (const std::exception& e) {
+			this->updateStatus(e.what());
+		}
+
 	}
 
 	void undo() {
@@ -153,17 +148,70 @@ public:
 			this->serv.undo();
 			updateList(this->serv.getAll());
 			this->updateStatus("Undo successful");
-		} catch (const std::exception& e) {
+		}
+		catch (const std::exception& e) {
 			this->updateStatus(e.what());
 		}
 	}
 
 	void addSubject() {
-		// TODO
+		try {
+			string name{};
+			int hours;
+			string type{};
+			string teacher{};
+
+			SubjectInputDialogWindow dialog{"", 1, "", ""};
+			dialog.setWindowTitle("Add subject");
+			if (dialog.exec() == QDialog::Accepted) {
+				name = dialog.getName();
+				hours = dialog.getHours();
+				type = dialog.getType();
+				teacher = dialog.getTeacher();
+			}
+			else return;
+
+			this->serv.addSubject(name, hours, type, teacher);
+			updateList(this->serv.getAll());
+			updateStatus("Added subject");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}
 	}
 
 	void updateSubject() {
-		// TODO
+		try {
+			string name{};
+			int hours;
+			string type{};
+			string teacher{};
+
+			string current_name = this->main_list->currentItem()->text().toStdString();
+			const int index = this->serv.findSubjectByName(current_name);
+			const Subject s = this->serv.getAll()[index];
+
+			SubjectInputDialogWindow dialog{ QString::fromStdString(s.getName()),
+				s.getHours(),
+				QString::fromStdString(s.getType()),
+				QString::fromStdString(s.getTeacher())};
+			dialog.setWindowTitle("Edit subject");
+			if (dialog.exec() == QDialog::Accepted) {
+				name = dialog.getName();
+				hours = dialog.getHours();
+				type = dialog.getType();
+				teacher = dialog.getTeacher();
+			}
+			else return;
+
+			
+			this->serv.updateSubject(index, name, hours, type, teacher);
+			updateList(this->serv.getAll());
+			updateStatus("Updated subject");
+		}
+		catch (const std::exception& e) {
+			updateStatus(e.what());
+		}
 	}
 
 	void sortByName() {
@@ -177,7 +225,7 @@ public:
 		}
 		catch (const std::exception& e) {
 			updateStatus(e.what());
-		}		
+		}
 	}
 
 	void sortByHours() {
@@ -209,10 +257,10 @@ public:
 	}
 
 	void filterByHour() {
-		// TODO
 		try {
-			int hours = -1;
+			int hours;
 			FilterDialogWindow dialog{ "Enter number of hours per week", true };
+			dialog.setWindowTitle("Filter by hours");
 			if (dialog.exec() == QDialog::Accepted) {
 				hours = dialog.getValue().toInt();
 			}
@@ -220,22 +268,22 @@ public:
 
 			auto all = this->serv.getAll();
 			vector<Subject> result{};
-			std::copy_if(all.begin(), all.end(),std::back_inserter(result) , [&](const Subject& s) {
+			std::copy_if(all.begin(), all.end(), std::back_inserter(result), [&](const Subject& s) {
 				return s.getHours() <= hours;
-			});
+				});
 			updateList(result);
 			updateStatus("List filtered");
 		}
-		catch(const std::exception & e) {
+		catch (const std::exception& e) {
 			updateStatus(e.what());
 		}
 	}
 
 	void filterByTeacher() {
-		// TODO
 		try {
 			string teacher = "dude";
 			FilterDialogWindow dialog{ "Enter teacher", false };
+			dialog.setWindowTitle("Filter by teacher name");
 			if (dialog.exec() == QDialog::Accepted) {
 				teacher = dialog.getValue().toStdString();
 			}
@@ -253,6 +301,12 @@ public:
 			updateStatus(e.what());
 		}
 	}
+public:
+	GUI(Service& s): serv{s} {
+		initGUI();
+		updateList(this->serv.getAll());
+		connectSignalsSlots();
+	}	
 };
 
 
