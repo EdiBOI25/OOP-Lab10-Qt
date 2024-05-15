@@ -9,6 +9,7 @@
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QTableWidget>
 
 #include "CustomQWidgets.h"
 #include "service.h"
@@ -19,6 +20,7 @@ private:
 	Service& serv;
 
 	QListWidget* main_list = new QListWidget{};
+	QTableWidget* main_table = new QTableWidget{};
 
 	QPushButton* add_btn = new QPushButton{"Add new subject"};
 	QPushButton* sort1_btn = new QPushButton{"Sort by name"};
@@ -48,7 +50,12 @@ private:
 		auto col1 = new QVBoxLayout{};
 		layout_main->addLayout(col1);
 
+		col1->addWidget(this->main_table);
+		this->main_table->setColumnCount(4);
+		this->main_table->setRowCount(this->serv.getAll().size());
+
 		col1->addWidget(this->main_list);
+
 		col1->addWidget(this->add_btn);
 		auto sort_layout = new QHBoxLayout{};
 		col1->addLayout(sort_layout);
@@ -83,6 +90,25 @@ private:
 		this->main_list->clear();
 		for (const auto& s : subjects) {
 			main_list->addItem(QString::fromStdString(s.getName()));
+		}
+	}
+
+	void updateTable(const vector<Subject>& subjects) {
+		this->main_table->clear();
+		this->main_table->setRowCount(subjects.size());
+		int i = 0; // current row
+
+		for (const auto& s : subjects) {
+			QTableWidgetItem* name = new QTableWidgetItem{ QString::fromStdString(s.getName()) };
+			QTableWidgetItem* hours = new QTableWidgetItem{ QString::number(s.getHours()) };
+			QTableWidgetItem* type = new QTableWidgetItem{ QString::fromStdString(s.getType()) };
+			QTableWidgetItem* teacher = new QTableWidgetItem{ QString::fromStdString(s.getTeacher()) };
+
+			this->main_table->setItem(i, 0, name);
+			this->main_table->setItem(i, 1, hours);
+			this->main_table->setItem(i, 2, type);
+			this->main_table->setItem(i, 3, teacher);
+			++i;
 		}
 	}
 
@@ -125,16 +151,21 @@ private:
 		label_status->setText(QString::fromStdString(message));
 	}
 
+	void clearRightLabels() {
+		label_name->setText("");
+		label_type->setText("");
+		label_hours->setText("");
+		label_teacher->setText("");
+	}
+
 	void removeSubject() {
 		try {
 			const auto name = this->main_list->currentItem()->text().toStdString();
 			const auto index = this->serv.findSubjectByName(name);
 			this->serv.removeSubject(index);
 			updateList(this->serv.getAll());
-			label_name->setText("");
-			label_type->setText("");
-			label_hours->setText("");
-			label_teacher->setText("");
+			updateTable(this->serv.getAll());
+			clearRightLabels();
 			updateStatus("Subject removed");
 		}
 		catch (const std::exception& e) {
@@ -147,6 +178,8 @@ private:
 		try {
 			this->serv.undo();
 			updateList(this->serv.getAll());
+			updateTable(this->serv.getAll());
+			clearRightLabels();
 			this->updateStatus("Undo successful");
 		}
 		catch (const std::exception& e) {
@@ -173,6 +206,8 @@ private:
 
 			this->serv.addSubject(name, hours, type, teacher);
 			updateList(this->serv.getAll());
+			updateTable(this->serv.getAll());
+			clearRightLabels();
 			updateStatus("Added subject");
 		}
 		catch (const std::exception& e) {
@@ -207,6 +242,8 @@ private:
 			
 			this->serv.updateSubject(index, name, hours, type, teacher);
 			updateList(this->serv.getAll());
+			updateTable(this->serv.getAll());
+			clearRightLabels();
 			updateStatus("Updated subject");
 		}
 		catch (const std::exception& e) {
@@ -305,6 +342,7 @@ public:
 	GUI(Service& s): serv{s} {
 		initGUI();
 		updateList(this->serv.getAll());
+		updateTable(this->serv.getAll());
 		connectSignalsSlots();
 	}	
 };
