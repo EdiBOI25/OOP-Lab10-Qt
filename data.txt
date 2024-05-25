@@ -1,8 +1,8 @@
 default1;10;compulsory;some dude
 default2;20;compulsory;other dude
-default4;40;other;not a dude this time
 default3;30;optional;another dude
 aaaa;10;other;aaaa
 test subject;4;compulsory;idk
+default4;40;other;not a dude this time
 test table subject;6;optional;bla bla
 default5;50;optional;not a dude again

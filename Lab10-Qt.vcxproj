@@ -94,6 +94,7 @@
   <ItemGroup>
     <ClCompile Include="CartGUI.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="MyTableModel.cpp" />
     <ClCompile Include="repository.cpp" />
     <ClCompile Include="service.cpp" />
     <ClCompile Include="subject.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="CartGUI.h" />
     <ClInclude Include="CustomQWidgets.h" />
     <ClInclude Include="GUI.h" />
+    <QtMoc Include="MyTableModel.h" />
     <ClInclude Include="Observer.h" />
     <ClInclude Include="repository.h" />
     <ClInclude Include="service.h" />

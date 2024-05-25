@@ -10,11 +10,13 @@
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QTableWidget>
+#include <QModelIndex>
 
 #include "CustomQWidgets.h"
 #include "service.h"
 #include "CustomQWidgets.h"
 #include "CartGUI.h"
+#include "MyTableModel.h"
 
 class GUI: public QWidget{
 private:
@@ -22,6 +24,8 @@ private:
 
 	QListWidget* main_list = new QListWidget{};
 	QTableWidget* main_table = new QTableWidget{};
+	QTableView* table_view = new QTableView{};
+	MyTableModel* table_model = new MyTableModel{this};
 
 	QPushButton* add_btn = new QPushButton{"Add new subject"};
 	QPushButton* sort1_btn = new QPushButton{"Sort by name"};
@@ -56,7 +60,9 @@ private:
 		auto col1 = new QVBoxLayout{};
 		layout_main->addLayout(col1);
 
-		col1->addWidget(this->main_table);
+		table_view->setModel(table_model);
+		//col1->addWidget(this->main_table);
+		col1->addWidget(table_view);
 		this->main_table->setColumnCount(4);
 		this->main_table->setRowCount(this->serv.getAll().size());
 
@@ -111,6 +117,9 @@ private:
 		this->main_table->setRowCount(subjects.size());
 		int i = 0; // current row
 
+		QVector<QVector<QVariant>> new_data;
+		new_data.resize(subjects.size());
+
 		for (const auto& s : subjects) {
 			QTableWidgetItem* name = new QTableWidgetItem{ QString::fromStdString(s.getName()) };
 			QTableWidgetItem* hours = new QTableWidgetItem{ QString::number(s.getHours()) };
@@ -121,8 +130,16 @@ private:
 			this->main_table->setItem(i, 1, hours);
 			this->main_table->setItem(i, 2, type);
 			this->main_table->setItem(i, 3, teacher);
+
+			new_data[i].push_back(QString::fromStdString(s.getName()));
+			new_data[i].push_back(QString::number(s.getHours()));
+			new_data[i].push_back(QString::fromStdString(s.getType()));
+			new_data[i].push_back(QString::fromStdString(s.getTeacher()));			
+
 			++i;
 		}
+
+		table_model->updateTable(new_data);
 	}
 
 	void connectSignalsSlots() {
