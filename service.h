@@ -5,6 +5,7 @@
 #include "repository.h"
 #include "Cart.h"
 #include "Undo.h"
+#include "Observer.h"
 
 using std::unique_ptr;
 
@@ -14,7 +15,7 @@ struct DTO {
 };
 DTO operator++(DTO& dto);
 
-class Service {
+class Service : public ObservableObject {
 private:
 	// Repository& repo;
 	AbstractRepo& repo;
@@ -137,4 +138,8 @@ public:
 	void undo();
 
 	void printContract() const;
+
+	vector<Subject> getContract() {
+		return contract.getContract();
+	}
 };

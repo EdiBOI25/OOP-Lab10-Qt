@@ -14,8 +14,9 @@
 #include "CustomQWidgets.h"
 #include "service.h"
 #include "CustomQWidgets.h"
+#include "CartGUI.h"
 
-class GUI: public QWidget {
+class GUI: public QWidget{
 private:
 	Service& serv;
 
@@ -41,6 +42,11 @@ private:
 	QPushButton* edit_btn = new QPushButton{"Edit"};
 	QPushButton* remove_btn = new QPushButton{"Remove"};
 	QPushButton* undo_btn = new QPushButton{"Undo"};
+
+	QPushButton* cart_crud_btn = new QPushButton("View Cart");
+	QPushButton* cart_read_btn = new QPushButton("Cart Drawing");
+	QPushButton* cart_generate_btn = new QPushButton("Generate Contract");
+	QPushButton* cart_clear_btn = new QPushButton("Clear Contract");
 
 	void initGUI() {
 		auto layout_main = new QHBoxLayout{};
@@ -84,6 +90,13 @@ private:
 		actions_layout->addWidget(this->edit_btn);
 		actions_layout->addWidget(this->remove_btn);
 		actions_layout->addWidget(this->undo_btn);
+
+		auto cart_layout = new QHBoxLayout{};
+		col2->addRow(cart_layout);
+		cart_layout->addWidget(this->cart_crud_btn);
+		cart_layout->addWidget(this->cart_read_btn);
+		cart_layout->addWidget(this->cart_generate_btn);
+		cart_layout->addWidget(this->cart_clear_btn);
 	}
 
 	void updateList(const vector<Subject>& subjects) {
@@ -129,7 +142,27 @@ private:
 		connect(this->filter3_btn, &QPushButton::clicked, [&] {
 			this->updateList(this->serv.getAll());
 			updateStatus("Showing all subjects");
-			});
+		});
+
+		// cart stuff
+		connect(cart_crud_btn, &QPushButton::clicked, [&] {
+			auto w = new CartCRUDGUI{this->serv};
+			w->show();
+		});
+		connect(cart_read_btn, &QPushButton::clicked, [&] {
+			auto w = new CartReadOnlyGUI{ this->serv };
+			w->show();
+		});
+		connect(cart_generate_btn, &QPushButton::clicked, [&] {
+			int ss = this->serv.size();
+			int random_nr = rand() % ss - 1;
+			if (random_nr <= 0)
+				random_nr = 1;
+			this->serv.generateRandomContract(random_nr);
+		});
+		connect(cart_clear_btn, &QPushButton::clicked, [&] {
+			this->serv.clearContract();
+		});
 	}
 
 	void showSubjectStats(const QListWidgetItem* item) {
@@ -340,6 +373,7 @@ private:
 	}
 public:
 	GUI(Service& s): serv{s} {
+		srand(time(NULL));
 		initGUI();
 		updateList(this->serv.getAll());
 		updateTable(this->serv.getAll());

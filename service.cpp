@@ -111,6 +111,7 @@ void Service::addToContract(const string& name) {
 
 void Service::clearContract() noexcept {
 	this->contract.clear();
+	notify();
 }
 
 void Service::generateRandomContract(const int& number) {
@@ -131,6 +132,7 @@ void Service::generateRandomContract(const int& number) {
 	for (int i = 0; i < number; ++i) {
 		this->contract.add(subjects.at(i));
 	}
+	notify();
 }
 
 void Service::exportContract(const string& file_name) const{

@@ -92,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CartGUI.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="repository.cpp" />
     <ClCompile Include="service.cpp" />
@@ -106,8 +107,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cart.h" />
+    <ClInclude Include="CartGUI.h" />
     <ClInclude Include="CustomQWidgets.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="Observer.h" />
     <ClInclude Include="repository.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="subject.h" />

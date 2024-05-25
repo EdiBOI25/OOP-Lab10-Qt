@@ -38,6 +38,10 @@ public:
 		return &this->list;
 	}
 
+	vector<Subject> getContract() {
+		return this->list;
+	}
+
 	/**
 	 * \brief Get number of subjects in cart
 	 * \return number of subject
@@ -46,7 +50,6 @@ public:
 		return this->list.size();
 	}
 
-	// TODO: export to file method
 	void exportToFile(string file_name) const{
 		file_name += ".csv";
 		std::ofstream fout(file_name);
@@ -55,8 +58,6 @@ public:
 		}
 		fout.close();
 	}
-
-	// TODO: undo
 
 	friend std::ostream& operator<<(std::ostream& out, const Cart& cart) {
 		int index = 0;
